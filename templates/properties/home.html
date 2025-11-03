@@ -1,0 +1,286 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}NestQuest - Find Your Perfect Rental Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white position-relative overflow-hidden">
+    <div class="container">
+        <div class="row align-items-center min-vh-100 py-5">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Find Your Perfect <br>
+                    <span class="text-warning">Rental Home</span>
+                </h1>
+                <p class="lead mb-4">
+                    Discover amazing rental properties with our clean, simple platform. 
+                    No clutter, just the perfect home waiting for you.
+                </p>
+                
+                <!-- Search Form -->
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <form method="GET" action="{% url 'properties:property_list' %}" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Location</label>
+                                <select name="city" class="form-select">
+                                    <option value="">Any City</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location.city }}">{{ location.city }}, {{ location.province }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Property Type</label>
+                                <select name="property_type" class="form-select">
+                                    <option value="">Any Type</option>
+                                    {% for type_value, type_name in property_types %}
+                                        <option value="{{ type_value }}">{{ type_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Bedrooms</label>
+                                <select name="min_bedrooms" class="form-select">
+                                    <option value="">Any</option>
+                                    <option value="1">1+</option>
+                                    <option value="2">2+</option>
+                                    <option value="3">3+</option>
+                                    <option value="4">4+</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-image">
+                    <i class="fas fa-home hero-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Decorative Elements -->
+    <div class="hero-decoration">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+        <div class="decoration-circle circle-3"></div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-home text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4 class="fw-bold">{{ recent_properties|length }}+</h4>
+                    <p class="text-muted">Properties Available</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-users text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4 class="fw-bold">500+</h4>
+                    <p class="text-muted">Happy Tenants</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-map-marker-alt text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4 class="fw-bold">{{ locations|length }}+</h4>
+                    <p class="text-muted">Cities Covered</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-star text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4 class="fw-bold">4.9</h4>
+                    <p class="text-muted">Average Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Properties -->
+{% if featured_properties %}
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Featured Properties</h2>
+                <p class="lead text-muted">
+                    Handpicked premium rentals that offer exceptional value and quality
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for property in featured_properties %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card property-card border-0 shadow-sm h-100">
+                    {% if property.get_main_image %}
+                        <img src="{{ property.get_main_image.image.url }}" class="card-img-top property-image" alt="{{ property.title }}">
+                    {% else %}
+                        <div class="card-img-top property-image-placeholder d-flex align-items-center justify-content-center">
+                            <i class="fas fa-home text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-primary">{{ property.get_property_type_display }}</span>
+                            <span class="badge bg-warning">Featured</span>
+                        </div>
+                        
+                        <h5 class="card-title">{{ property.title }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ property.location.suburb }}, {{ property.location.city }}
+                        </p>
+                        
+                        <div class="property-details mb-3">
+                            <span class="me-3">
+                                <i class="fas fa-bed me-1"></i>{{ property.bedrooms }}
+                            </span>
+                            <span class="me-3">
+                                <i class="fas fa-bath me-1"></i>{{ property.bathrooms }}
+                            </span>
+                            {% if property.parking_spaces %}
+                            <span>
+                                <i class="fas fa-car me-1"></i>{{ property.parking_spaces }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <div class="price">
+                                <h5 class="text-primary mb-0">{{ property.get_rent_display }}</h5>
+                            </div>
+                            <a href="{{ property.get_absolute_url }}" class="btn btn-outline-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'properties:property_list' %}" class="btn btn-primary btn-lg">
+                View All Properties <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Why Choose Us -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Why Choose NestQuest?</h2>
+                <p class="lead text-muted">
+                    We've simplified property rental to focus on what really matters
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-search text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Smart Search</h4>
+                    <p class="text-muted">
+                        Powerful filters and intelligent search that actually works. 
+                        Find exactly what you're looking for, fast.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-shield-alt text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Verified Listings</h4>
+                    <p class="text-muted">
+                        Every property is verified and legitimate. No fake listings, 
+                        no time wasters, just real homes.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-mobile-alt text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Mobile First</h4>
+                    <p class="text-muted">
+                        Designed for mobile from the ground up. Search and save 
+                        properties on the go, anywhere, anytime.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Properties -->
+{% if recent_properties %}
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Latest Listings</h2>
+                <p class="lead text-muted">
+                    Fresh properties added daily
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for property in recent_properties %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card property-card border-0 shadow-sm h-100">
+                    {% if property.get_main_image %}
+                        <img src="{{ property.get_main_image.image.url }}" class="card-img-top property-image-sm" alt="{{ property.title }}">
+                    {% else %}
+                        <div class="card-img-top property-image-placeholder-sm d-flex align-items-center justify-content-center">
+                            <i class="fas fa-home text-muted"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ property.get_property_type_display }}</span>
+                        <h6 class="card-title">{{ property.title|truncatechars:30 }}</h6>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ property.location.suburb }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-primary fw-bold">{{ property.get_rent_display }}</small>
+                            <a href="{{ property.get_absolute_url }}" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,240 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Properties - NestQuest{% endblock %}
+
+{% block extra_css %}
+<style>
+    .property-card {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        height: 100%;
+    }
+    .property-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .property-image {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        background: #f0f0f0;
+    }
+    .property-image-placeholder {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+    }
+    .property-info {
+        padding: 1rem;
+    }
+    .property-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a73e8;
+        margin-bottom: 0.5rem;
+    }
+    .property-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #202124;
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+    }
+    .property-location {
+        font-size: 0.875rem;
+        color: #5f6368;
+        margin-bottom: 0.75rem;
+    }
+    .property-features {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #5f6368;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e8eaed;
+    }
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .filters-bar {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .page-header {
+        margin-bottom: 1.5rem;
+    }
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #202124;
+        margin-bottom: 0.5rem;
+    }
+    .results-count {
+        color: #5f6368;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Find Your Perfect Rental</h1>
+        <div class="results-count">{{ total_count }} properties available</div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <form method="GET" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                <label class="form-label small text-muted">Location</label>
+                <input type="text" name="location" class="form-control" placeholder="City, Area..." 
+                       value="{{ request.GET.location }}">
+                            </div>
+                            <div class="col-md-2">
+                <label class="form-label small text-muted">Property Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    {% for pt in property_types %}
+                        <option value="{{ pt }}" {% if request.GET.type == pt %}selected{% endif %}>{{ pt|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                <label class="form-label small text-muted">Min Price</label>
+                <input type="number" name="min_price" class="form-control" placeholder="Min" 
+                       value="{{ request.GET.min_price }}">
+                            </div>
+                            <div class="col-md-2">
+                <label class="form-label small text-muted">Max Price</label>
+                <input type="number" name="max_price" class="form-control" placeholder="Max" 
+                       value="{{ request.GET.max_price }}">
+                            </div>
+                            <div class="col-md-2">
+                <label class="form-label small text-muted">Bedrooms</label>
+                <select name="beds" class="form-select">
+                    <option value="">Any</option>
+                    <option value="1" {% if request.GET.beds == "1" %}selected{% endif %}>1+</option>
+                    <option value="2" {% if request.GET.beds == "2" %}selected{% endif %}>2+</option>
+                    <option value="3" {% if request.GET.beds == "3" %}selected{% endif %}>3+</option>
+                    <option value="4" {% if request.GET.beds == "4" %}selected{% endif %}>4+</option>
+                    <option value="5" {% if request.GET.beds == "5" %}selected{% endif %}>5+</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Property Grid -->
+    <div class="row g-4">
+        {% for property in properties %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'properties:property_detail' property.id %}" class="text-decoration-none text-dark">
+                <div class="property-card shadow-sm">
+                    {% with thumbnail=property.images.all|first %}
+                        {% if thumbnail %}
+                            <img src="{{ thumbnail.url }}" alt="{{ property.title }}" class="property-image" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="property-image-placeholder" style="display:none;">
+                                <i class="fas fa-home"></i>
+                            </div>
+                        {% else %}
+                            <div class="property-image-placeholder">
+                                <i class="fas fa-home"></i>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="property-info">
+                        <div class="property-price">
+                            {% if property.price %}
+                                KSh {{ property.price|floatformat:0 }}
+                            {% else %}
+                                Price on Request
+                            {% endif %}
+                        </div>
+                        <div class="property-title">{{ property.title|truncatechars:50 }}</div>
+                        <div class="property-location">
+                            <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                        </div>
+                        <div class="property-features">
+                            {% for detail in property.details.all %}
+                                {% if detail.key == "bedrooms" or detail.key == "beds" %}
+                                    <div class="feature-item">
+                                        <i class="fas fa-bed"></i>
+                                        <span>{{ detail.value }} Bed{{ detail.value|pluralize }}</span>
+                                    </div>
+                                {% elif detail.key == "bathrooms" or detail.key == "baths" %}
+                                    <div class="feature-item">
+                                        <i class="fas fa-bath"></i>
+                                        <span>{{ detail.value }} Bath{{ detail.value|pluralize }}</span>
+                                    </div>
+                                {% elif detail.key == "parking" or detail.key == "garages" %}
+                                    <div class="feature-item">
+                                        <i class="fas fa-car"></i>
+                                        <span>{{ detail.value }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-home text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3">No properties found</h3>
+                <p class="text-muted">Try adjusting your search criteria.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if properties.has_other_pages %}
+    <nav aria-label="Property pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+            {% if properties.has_previous %}
+                        <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ properties.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+            {% for num in properties.paginator.page_range %}
+                {% if properties.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
+                            <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+            {% if properties.has_next %}
+                        <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ properties.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+    {% endif %}
+</div>
+{% endblock %} 

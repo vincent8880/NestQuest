@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/media/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scraping results
+*.json
+!package.json
+!package-lock.json
+
+# Screenshots
+screenshots/
+*.png
+*.jpg
+!media/**/*.jpg
+!static/**/*.jpg
+
+# Playwright
+.playwright/
+
+
+

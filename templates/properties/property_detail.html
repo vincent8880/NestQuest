@@ -1,0 +1,505 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ property.title }} - NestQuest{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .gallery-thumb {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .gallery-thumb:hover {
+        opacity: 0.8;
+    }
+    .property-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e8eaed;
+    }
+    .property-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #202124;
+        margin-bottom: 0.5rem;
+    }
+    .property-location {
+        font-size: 1rem;
+        color: #5f6368;
+        margin-bottom: 1rem;
+    }
+    .property-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a73e8;
+        margin-bottom: 1rem;
+    }
+    .property-specs {
+        display: flex;
+        gap: 2rem;
+        padding: 1rem 0;
+        border-top: 1px solid #e8eaed;
+        border-bottom: 1px solid #e8eaed;
+        margin: 1.5rem 0;
+    }
+    .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .spec-item i {
+        font-size: 1.25rem;
+        color: #5f6368;
+    }
+    .spec-item span {
+        font-weight: 500;
+        color: #202124;
+    }
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+    .detail-section h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #202124;
+        margin-bottom: 1rem;
+    }
+    .description-text {
+        color: #5f6368;
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+    .feature-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+        list-style: none;
+        padding: 0;
+    }
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #5f6368;
+    }
+    .feature-list li:before {
+        content: "✓";
+        color: #34a853;
+        font-weight: bold;
+    }
+    .contact-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        position: sticky;
+        top: 100px;
+    }
+    .contact-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e8eaed;
+    }
+    .contact-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    .contact-label {
+        font-size: 0.875rem;
+        color: #5f6368;
+        margin-bottom: 0.25rem;
+    }
+    .contact-value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #202124;
+    }
+    /* Slideshow Modal Styles */
+    .slideshow-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        cursor: pointer;
+    }
+    .slideshow-modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .slideshow-container {
+        position: relative;
+        width: 90%;
+        max-width: 1200px;
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .slideshow-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        cursor: default;
+    }
+    .slideshow-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        font-size: 1.5rem;
+        color: #202124;
+        transition: background 0.2s;
+    }
+    .slideshow-close:hover {
+        background: white;
+    }
+    .slideshow-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        font-size: 1.5rem;
+        color: #202124;
+        transition: background 0.2s;
+    }
+    .slideshow-nav:hover {
+        background: white;
+    }
+    .slideshow-nav.prev {
+        left: 20px;
+    }
+    .slideshow-nav.next {
+        right: 20px;
+    }
+    .slideshow-counter {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 1rem;
+        z-index: 10000;
+    }
+    .image-overlay {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+    .image-overlay:hover {
+        background: rgba(0, 0, 0, 0.9);
+    }
+    .hero-image {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'properties:property_list' %}">Properties</a></li>
+            <li class="breadcrumb-item active">{{ property.location }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Hero Image Container -->
+            <div style="position: relative;">
+                {% if thumbnail %}
+                    <img src="{{ thumbnail.url }}" alt="{{ property.title }}" class="hero-image" id="heroImage">
+                    {% if all_images|length > 1 %}
+                        <div class="image-overlay" onclick="openSlideshow(0)">
+                            View all {{ all_images|length }} photos
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="hero-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-home text-white" style="font-size: 4rem;"></i>
+                    </div>
+                {% endif %}
+                        </div>
+
+            <!-- Gallery Thumbnails -->
+            {% if gallery_images %}
+            <div class="gallery-grid">
+                {% for img in gallery_images|slice:":12" %}
+                    <img src="{{ img.url }}" alt="Gallery image {{ forloop.counter }}" 
+                         class="gallery-thumb" 
+                         onclick="openSlideshow({{ forloop.counter }})"
+                         data-image-index="{{ forloop.counter }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            <!-- Slideshow Modal -->
+            <div class="slideshow-modal" id="slideshowModal">
+                <div class="slideshow-container">
+                    <button class="slideshow-close" onclick="closeSlideshow()" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button class="slideshow-nav prev" onclick="changeSlide(-1)" aria-label="Previous">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <img id="slideshowImage" class="slideshow-image" alt="Property image">
+                    <button class="slideshow-nav next" onclick="changeSlide(1)" aria-label="Next">
+                        <i class="fas fa-chevron-right"></i>
+                                </button>
+                    <div class="slideshow-counter" id="slideshowCounter">
+                        <span id="currentImage">1</span> of <span id="totalImages">{{ all_images|length }}</span>
+                    </div>
+                            </div>
+                        </div>
+
+            <!-- Property Header -->
+            <div class="property-header">
+                <h1 class="property-title">{{ property.title }}</h1>
+                <div class="property-location">
+                    <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                            </div>
+                <div class="property-price">
+                    {% if property.price %}
+                        KSh {{ property.price|floatformat:0 }}
+                    {% else %}
+                        Price on Request
+                        {% endif %}
+                    </div>
+
+                <!-- Property Specs -->
+                <div class="property-specs">
+                    {% if beds %}
+                    <div class="spec-item">
+                        <i class="fas fa-bed"></i>
+                        <span>{{ beds }} Bedroom{{ beds|pluralize }}</span>
+                    </div>
+                    {% endif %}
+                    {% if baths %}
+                    <div class="spec-item">
+                        <i class="fas fa-bath"></i>
+                        <span>{{ baths }} Bathroom{{ baths|pluralize }}</span>
+                    </div>
+                                    {% endif %}
+                    {% if parking %}
+                    <div class="spec-item">
+                        <i class="fas fa-car"></i>
+                        <span>{{ parking }} Parking</span>
+                    </div>
+                    {% endif %}
+                    {% if floor_size %}
+                    <div class="spec-item">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                        <span>{{ floor_size }} m²</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if description %}
+            <div class="detail-section">
+                <h3>Description</h3>
+                <div class="description-text">{{ description|linebreaks }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Property Details -->
+            <div class="detail-section">
+                <h3>Property Details</h3>
+                <div class="row">
+                    {% for detail in property.details.all %}
+                        {% if detail.key != 'description' and detail.key != 'bedrooms' and detail.key != 'bathrooms' and detail.key != 'parking' and detail.key != 'garages' and detail.key != 'floor_size' and detail.key != 'floor_area' %}
+                            <div class="col-md-6 mb-2">
+                                <strong>{{ detail.key|title }}:</strong> {{ detail.value }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Features -->
+            {% for detail in property.details.all %}
+                {% if detail.key == 'features' or detail.key == 'amenities' %}
+                <div class="detail-section">
+                    <h3>Features</h3>
+                    <div class="description-text">{{ detail.value|linebreaks }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="contact-card">
+                <h4 class="mb-3">Contact Information</h4>
+                
+                {% if contacts %}
+                    {% for contact in contacts %}
+                        <div class="contact-item">
+                            {% if contact.name %}
+                            <div class="contact-label">Name</div>
+                            <div class="contact-value">{{ contact.name }}</div>
+                            {% endif %}
+                            
+                            {% if contact.phone %}
+                            <div class="contact-label">Phone</div>
+                            <div class="contact-value">
+                                <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                            </div>
+                        {% endif %}
+                        
+                            {% if contact.email %}
+                            <div class="contact-label">Email</div>
+                            <div class="contact-value">
+                                <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Contact information not available.</p>
+                {% endif %}
+
+                <!-- Property Info -->
+                <div class="mt-4 pt-3 border-top">
+                    <div class="contact-item">
+                        <div class="contact-label">Property Type</div>
+                        <div class="contact-value">{{ property.property_type|title }}</div>
+                    </div>
+                    {% if property.external_id %}
+                    <div class="contact-item">
+                        <div class="contact-label">Reference</div>
+                        <div class="contact-value">{{ property.external_id }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const imageUrls = [
+        {% for img in all_images %}
+            "{{ img.url }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    let currentSlideIndex = 0;
+
+    function openSlideshow(index) {
+        currentSlideIndex = index;
+        document.getElementById('slideshowModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateSlideshow();
+    }
+
+    function closeSlideshow() {
+        document.getElementById('slideshowModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function changeSlide(direction) {
+        currentSlideIndex += direction;
+        if (currentSlideIndex < 0) {
+            currentSlideIndex = imageUrls.length - 1;
+        } else if (currentSlideIndex >= imageUrls.length) {
+            currentSlideIndex = 0;
+        }
+        updateSlideshow();
+    }
+
+    function updateSlideshow() {
+        if (imageUrls.length > 0) {
+            document.getElementById('slideshowImage').src = imageUrls[currentSlideIndex];
+            document.getElementById('currentImage').textContent = currentSlideIndex + 1;
+            document.getElementById('totalImages').textContent = imageUrls.length;
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('slideshowModal');
+        if (modal.classList.contains('active')) {
+            if (e.key === 'Escape') {
+                closeSlideshow();
+            } else if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeSlide(1);
+            }
+        }
+    });
+
+    // Click hero image to open slideshow
+    const heroImage = document.getElementById('heroImage');
+    if (heroImage) {
+        heroImage.addEventListener('click', function() {
+            if (imageUrls.length > 0) {
+                openSlideshow(0);
+            }
+        });
+    }
+
+    // Click outside image to close
+    document.getElementById('slideshowModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeSlideshow();
+        }
+    });
+</script>
+{% endblock %}
