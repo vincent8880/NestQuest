@@ -30,7 +30,12 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-_33j%r72aq&s!ush=2(+m
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ALLOWED_HOSTS: Comma-separated list of host/domain names
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+# Special handling: '*' allows all hosts (useful for Railway)
+_allowed_hosts = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+if _allowed_hosts == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [s.strip() for s in _allowed_hosts.split(',')]
 
 
 # Application definition
