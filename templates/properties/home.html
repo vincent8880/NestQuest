@@ -130,7 +130,7 @@
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card property-card border-0 shadow-sm h-100">
                     {% if property.get_main_image %}
-                        <img src="{{ property.get_main_image.image.url }}" class="card-img-top property-image" alt="{{ property.title }}">
+                        <img src="{{ property.get_main_image.image.cleaned_url|default:property.get_main_image.image.url }}" class="card-img-top property-image" alt="{{ property.title }}">
                     {% else %}
                         <div class="card-img-top property-image-placeholder d-flex align-items-center justify-content-center">
                             <i class="fas fa-home text-muted" style="font-size: 3rem;"></i>
@@ -257,7 +257,7 @@
             <div class="col-lg-3 col-md-6 mb-4">
                 <div class="card property-card border-0 shadow-sm h-100">
                     {% if property.get_main_image %}
-                        <img src="{{ property.get_main_image.image.url }}" class="card-img-top property-image-sm" alt="{{ property.title }}">
+                        <img src="{{ property.get_main_image.image.cleaned_url|default:property.get_main_image.image.url }}" class="card-img-top property-image-sm" alt="{{ property.title }}">
                     {% else %}
                         <div class="card-img-top property-image-placeholder-sm d-flex align-items-center justify-content-center">
                             <i class="fas fa-home text-muted"></i>

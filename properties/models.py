@@ -18,8 +18,9 @@ class Property(models.Model):
     location = models.CharField(max_length=255, default='Nairobi')  # e.g., "Nairobi, Westlands"
     property_type = models.CharField(max_length=50, default='other')  # e.g., "Apartment", "House"
     # Provenance & lifecycle
-    detail_url = models.URLField(blank=True, null=True)
-    listing_url = models.URLField(blank=True, null=True)
+    # Increase URL max_length to safely store long tracking/query URLs (e.g. BuyRentKenya)
+    detail_url = models.URLField(blank=True, null=True, max_length=500)
+    listing_url = models.URLField(blank=True, null=True, max_length=500)
     listing_page = models.IntegerField(blank=True, null=True)
     card_index = models.IntegerField(blank=True, null=True)
     first_seen_at = models.DateTimeField(default=timezone.now)
@@ -37,7 +38,8 @@ class Property(models.Model):
 class Image(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
-    url = models.URLField()  # URL to image on Property24
+    url = models.URLField(max_length=500)  # Original URL (with watermark) - kept as backup reference
+    cleaned_url = models.URLField(max_length=500, blank=True, null=True)  # Cleaned image URL (no watermark) - used for display
     is_thumbnail = models.BooleanField(default=False)  # Only one image per property is thumbnail
     # Identity & ordering
     image_base_id = models.CharField(max_length=64, blank=True, null=True)
@@ -47,7 +49,15 @@ class Image(models.Model):
     def __str__(self):
         return f"Image for {self.property.title}"
     
+    def get_display_url(self):
+        """
+        Returns cleaned image URL if available, otherwise original URL.
+        Fast database lookup - no file system checks!
+        """
+        return self.cleaned_url if self.cleaned_url else self.url
+    
     class Meta:
+        ordering = ['order_index', 'id']  # Consistent ordering everywhere
         constraints = [
             models.UniqueConstraint(
                 fields=['property'],
@@ -103,3 +113,27 @@ class ScrapingProgress(models.Model):
     
     def __str__(self):
         return f"{self.area} - {self.status} (Page {self.last_page_scraped})"
+
+class Visitor(models.Model):
+    """Track website visitors and page views"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ip_address = models.GenericIPAddressField()
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    path = models.CharField(max_length=500)
+    method = models.CharField(max_length=10, default='GET')
+    user_agent = models.CharField(max_length=200, blank=True)
+    referer = models.URLField(max_length=500, blank=True)
+    visited_at = models.DateTimeField(auto_now_add=True)
+    is_login = models.BooleanField(default=False)  # True if this was a login action
+    
+    class Meta:
+        ordering = ['-visited_at']
+        indexes = [
+            models.Index(fields=['-visited_at']),
+            models.Index(fields=['ip_address', '-visited_at']),
+            models.Index(fields=['user', '-visited_at']),
+        ]
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else 'Anonymous'
+        return f"{user_str} ({self.ip_address}) - {self.path} - {self.visited_at.strftime('%Y-%m-%d %H:%M')}"

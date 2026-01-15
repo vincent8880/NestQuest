@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Property, Source, Image, Contact, PropertyDetail, ScrapingProgress
+from .models import Property, Source, Image, Contact, PropertyDetail, ScrapingProgress, Visitor
 
 @admin.register(Source)
 class SourceAdmin(admin.ModelAdmin):
@@ -37,3 +37,14 @@ class ScrapingProgressAdmin(admin.ModelAdmin):
     list_filter = ['status', 'area']
     search_fields = ['area']
     readonly_fields = ['last_scraped_at']
+
+@admin.register(Visitor)
+class VisitorAdmin(admin.ModelAdmin):
+    list_display = ['ip_address', 'user', 'path', 'method', 'is_login', 'visited_at']
+    list_filter = ['is_login', 'method', 'visited_at', 'user']
+    search_fields = ['ip_address', 'path', 'user__username']
+    readonly_fields = ['visited_at']
+    date_hierarchy = 'visited_at'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
